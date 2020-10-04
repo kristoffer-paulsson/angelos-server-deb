@@ -1,1 +1,6 @@
 /.vagrant/
+/data/*.txt
+*.log
+/data/*.gz
+/data/*.tgz
+/data/*.deb
