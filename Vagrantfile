@@ -60,6 +60,7 @@ Vagrant.configure("2") do |config|
     sudo chmod +x angelos-meta/bin/angelos-filter-files
     sudo chmod +x angelos-meta/bin/angelos-deb-control
     sudo chmod +x angelos-meta/bin/angelos-render-file
+    sudo chmod +x angelos-meta/bin/angelos-render-script
 
     angelos-meta/bin/angelos-filter-files
 
@@ -67,19 +68,26 @@ Vagrant.configure("2") do |config|
     mkdir $PACKAGE/DEBIAN/ -p
     angelos-meta/bin/angelos-deb-control -r=control > $PACKAGE/DEBIAN/control
 
+    angelos-meta/bin/angelos-render-script -r=pre-inst -s=debian > $PACKAGE/DEBIAN/preinst
+    angelos-meta/bin/angelos-render-script -r=post-inst -s=debian > $PACKAGE/DEBIAN/postinst
+    angelos-meta/bin/angelos-render-script -r=pre-rem -s=debian > $PACKAGE/DEBIAN/prerm
+    angelos-meta/bin/angelos-render-script -r=post-rem -s=debian > $PACKAGE/DEBIAN/postrm
+
+    sudo chmod 775 $PACKAGE/DEBIAN/*
+
     mkdir $PACKAGE/opt -p
     sudo mv /opt/angelos/ $PACKAGE/opt
 
     install --directory $PACKAGE/etc/angelos
-    install --directory $PACKAGE/var/lib/angelos
-    install --directory $PACKAGE/var/log/angelos
+    install --directory -m 700 $PACKAGE/var/lib/angelos
+    install --directory -m 700 $PACKAGE/var/log/angelos
 
     install -D -m 0644 <(angelos-meta/bin/angelos-render-file -r=env) $PACKAGE/etc/angelos/env.json
     install -D -m 0644 <(angelos-meta/bin/angelos-render-file -r=config) $PACKAGE/etc/angelos/config.json
-    install -D -m 0644 <(angelos-meta/bin/angelos-render-file -r=admins) $PACKAGE/var/lib/angelos/admins.pub
-    install -D -m 0644 <(angelos-meta/bin/angelos-render-file -r=service) $PACKAGE/usr/bin/systemd/system/angelos.service
+    install -D -m 600 <(angelos-meta/bin/angelos-render-file -r=admins) $PACKAGE/var/lib/angelos/admins.pub
+    install -D -m 0644 <(angelos-meta/bin/angelos-render-file -r=service) $PACKAGE/usr/lib/systemd/system/angelos.service
 
-    dpkg-deb --build --root-owner-group $PACKAGE 2>&1 | tee -a ../build.log
+    dpkg-deb --build $PACKAGE 2>&1 | tee -a ../build.log
 
     mv ../build.log /home/vagrant/data
     mv ./$PACKAGE.deb /home/vagrant/data
