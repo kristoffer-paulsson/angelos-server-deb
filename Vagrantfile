@@ -55,7 +55,8 @@ Vagrant.configure("2") do |config|
 
     sudo mkdir /opt/angelos -p
     sudo chown vagrant:vagrant /opt/angelos
-    python setup.py venv --prefix=/opt/angelos
+    python setup.py venv --prefix=/opt/angelos 2>&1 | tee -a venv.log
+    mv venv.log /home/vagrant/data
 
     sudo chmod +x angelos-meta/bin/angelos-filter-files
     sudo chmod +x angelos-meta/bin/angelos-deb-control
